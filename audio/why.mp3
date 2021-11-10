@@ -1,0 +1,214 @@
+
+
+
+
+
+<!--
+<script>
+//http://www.ch2jp.com/   网站的js供参考
+var isMaxCheck = false;
+try {
+    isMaxCheck = external.max_version
+} catch (e) {};
+Utils = {
+    g: function (id) {
+        return document.getElementById(id)
+    },
+    f: function (json) {
+        this.g(json.cid).innerHTML = this.fm(this.b.isIE ? '<object id="#{id}" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="#{width}" height="#{height}" align="#{align}"><param name="movie" value="#{movie}" /><param name="allowScriptAccess" value="#{allowScriptAccess}" /><param name="allowNetworking" value="#{allowNetworking}" /><param name="flashVars" value="#{flashVars}" /><param name="wmode" value="#{wmode}" /><param name="scale" value="#{scale}" /><param name="salign" value="#{salign}" /></object>' : '<embed id="#{id}" src="#{movie}" allowScriptAccess="#{allowScriptAccess}" allowNetworking="#{allowNetworking}" flashVars="#{flashVars}" width="#{width}" height="#{height}" align="#{align}" type="application/x-shockwave-flash" pluginspage="http://www.adobe.com/go/getflashplayer" wmode="#{wmode}" scale="#{scale}" salign="#{salign}" />', json)
+    },
+    fm: function (str, json) {
+        if (arguments.length) {
+            if (typeof(json) == "object") str = str.replace(/#\{([^\{\}]+)\}/g, function (a, key) {
+                var v = json[key];
+                if (typeof v == 'function') v = v(key);
+                return typeof(v) == 'undefined' ? "" : v
+            });
+            else if (typeof(json) != "undefined") for (var i = arguments.length - 2; i > -1; i--) str = str.replace(new RegExp("#\\{" + i + "\\}", "g"), arguments[i + 1])
+        };
+        return str
+    },
+    b: {
+        isIE: /msie/i.test(navigator.userAgent),
+        isFF: /firefox/i.test(navigator.userAgent),
+        isMaxthon: isMaxCheck
+    },
+    mo: function () {
+        var result = {};
+        var l = arguments.length;
+        for (var i = 0; i < l; i++) {
+            var obj = arguments[i];
+            for (var n in obj) {
+                if (result[n] != null) {
+                    continue
+                };
+                result[n] = arguments[i][n]
+            }
+        };
+        return result
+    }
+};
+P = {
+    g: Utils.g,
+    f: Utils.f,
+    b: Utils.b,
+    fm: Utils.fm,
+    _flash: null,
+    loaded: false,
+    fl: {
+        cid: "voicediv",
+        id: "voice",
+        width: 0,
+        height: 0,
+        align: "middle",
+        movie: "http://www.ch2jp.com/p.swf",
+        allowScriptAccess: "sameDomain",
+        allowNetworking: "all",
+        salign: "lt",
+        wmode: "window",
+        scale: "noscale",
+        flashVars: "_instanceName=P"
+    },
+    load: function () {
+        if (this.b.isMaxthon) this.fl.movie += "&r=" + Math.random();
+        this.f(this.fl)
+    },
+    setUrl: function (value) {
+        this._flash._setVar("url", value)
+    },
+    play: function () {
+        this._flash._play()
+    },
+    stop: function () {
+        this._flash._stop()
+    },
+    _onLoad: function () {
+        this.loaded = true;
+        this._flash = this.g(this.fl.id);
+        if (this.onLoad) this.onLoad()
+    }
+};
+P.load();
+
+function play(f) {
+    try {
+        if (P.loaded) {
+            P.stop();
+            P.setUrl(f);
+            P.play()
+        } else {
+            P.onLoad = function () {
+                P.setUrl(f);
+                P.play()
+            }
+        }
+    } catch (e) {}
+}
+
+
+function $(id) {
+    return document.getElementById(id)
+};
+
+function rst() {
+    $("from").value = "";
+    $("to").value = "翻译结果在此显示";
+    $("wu").innerHTML = ""
+};
+
+function translate() {
+    var From = $("cong").value;
+    var To = $("dao").value;
+    if (From == To) {
+        $("wu").innerHTML = "同一种语言不需要翻译，请选择不同的语言"
+    } else {
+        var text = $("from").value;
+        if (text.length == "") {
+            $("wu").innerHTML = "要翻译的文本不能为空"
+        } else if (text.length > 100) {
+            $("wu").innerHTML = "要翻译的文本不能超过100个字符"
+        } else {
+            $("wu").innerHTML = "正在翻译……请稍后";
+            window.mycallback = function (response) {
+                if (response == "") {
+                    alert("翻译服务不可用");
+                    $("wu").innerHTML = "";
+                    return
+                } else {
+                    $("to").innerHTML = response;
+                    $("wu").innerHTML = "翻译成功"
+                }
+            };
+            var s = document.createElement("script");
+            s.src = "http://api.microsofttranslator.com/V2/Ajax.svc/Translate?oncomplete=mycallback&appId=" + encodeURIComponent("68D088969D79A8B23AF8585CC83EBA2A05A97651") + "&from=" + From + "&to=" + To + "&text=" + encodeURIComponent(text);
+            document.getElementsByTagName("head")[0].appendChild(s)
+        }
+    }
+};
+
+function sound() {
+    if ($("from").value == "") {
+        $("wu").innerHTML = "您还没有输入任何要翻译的原文，如何给您朗读呢"
+    } else if ($("cong").value == "") {
+        $("wu").innerHTML = "请把'自动检测'选成您所要朗读的语言，否则无法发音哦"
+    } else {
+        var fy = "http://api.microsofttranslator.com/V2/http.svc/Speak?appId=" + encodeURIComponent("68D088969D79A8B23AF8585CC83EBA2A05A97651") + "&text=" + encodeURIComponent($("from").value) + "&language=" + $("cong").value + "&format=audio%2fmp3";
+        play(fy);
+        return false
+    }
+};
+
+function sound2() {
+    if ($("to").innerHTML == "翻译结果在此显示") {
+        $("wu").innerHTML = "没有翻译结果，如何给您朗读呢"
+    } else {
+        var fy = "http://api.microsofttranslator.com/V2/http.svc/Speak?appId=" + encodeURIComponent("68D088969D79A8B23AF8585CC83EBA2A05A97651") + "&text=" + encodeURIComponent($("to").value) + "&language=" + $("dao").value + "&format=audio%2fmp3";
+        play(fy);
+        return false
+    }
+};
+http://api.microsofttranslator.com/V2/http.svc/Speak?appId=18EBCB4119C1F92942268A87554F13CF195FE4E8&text=RA&language=ja&format=audio%2fmp3
+
+function isKeyTrigger(e, keyCode) {
+    var argv = isKeyTrigger.arguments;
+    var argc = isKeyTrigger.arguments.length;
+    var bCtrl = false;
+    if (argc > 2) {
+        bCtrl = argv[2]
+    };
+    var bAlt = false;
+    if (argc > 3) {
+        bAlt = argv[3]
+    };
+    var nav4 = window.Event ? true : false;
+    if (typeof e == 'undefined') {
+        e = event
+    };
+    if (bCtrl && !((typeof e.ctrlKey != 'undefined') ? e.ctrlKey : e.modifiers & Event.CONTROL_MASK > 0)) {
+        return false
+    };
+    if (bAlt && !((typeof e.altKey != 'undefined') ? e.altKey : e.modifiers & Event.ALT_MASK > 0)) {
+        return false
+    };
+    var whichCode = 0;
+    if (nav4) whichCode = e.which;
+    else if (e.type == "keypress" || e.type == "keydown") whichCode = e.keyCode;
+    else whichCode = e.button;
+    return (whichCode == keyCode)
+};
+
+function ctrlEnter(e) {
+    var ie = navigator.appName == "Microsoft Internet Explorer" ? true : false;
+    if (ie) {
+        if (event.ctrlKey && window.event.keyCode == 13) {
+            translate()
+        }
+    } else {
+        if (isKeyTrigger(e, 13, true)) {
+            translate()
+        }
+    }
+}
+</script>
+-->
+
